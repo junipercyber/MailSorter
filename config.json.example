@@ -1,0 +1,21 @@
+{
+  "email": {
+    "server": "imap.gmail.com",
+    "username": "your-email@gmail.com",
+    "password": "your-password",
+    "port": 993
+  },
+  "rules": [
+    {
+      "name": "Work Emails",
+      "keywords": ["meeting", "project", "deadline"],
+      "sender_patterns": ["@company.com"],
+      "folder": "Work"
+    },
+    {
+      "name": "Personal",
+      "keywords": ["family", "friend"],
+      "folder": "Personal"
+    }
+  ]
+}
