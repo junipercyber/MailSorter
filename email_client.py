@@ -41,3 +41,29 @@ class EmailClient:
         if status == 'OK':
             return [folder.decode().split('"')[-2] for folder in folders]
         return []
+
+    def select_folder(self, folder='INBOX'):
+        if not self.mail:
+            return False
+
+        status, _ = self.mail.select(folder)
+        return status == 'OK'
+
+    def get_emails(self, folder='INBOX', limit=10):
+        if not self.select_folder(folder):
+            return []
+
+        status, messages = self.mail.search(None, 'ALL')
+        if status != 'OK':
+            return []
+
+        email_ids = messages[0].split()
+        emails = []
+
+        for email_id in email_ids[-limit:]:
+            status, msg_data = self.mail.fetch(email_id, '(RFC822)')
+            if status == 'OK':
+                email_message = email.message_from_bytes(msg_data[0][1])
+                emails.append((email_id, email_message))
+
+        return emails
