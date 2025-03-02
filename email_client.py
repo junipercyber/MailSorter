@@ -1,7 +1,10 @@
 import imaplib
 import email
 import ssl
+import logging
 from config import Config
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class EmailClient:
     def __init__(self, config_file="config.json"):
@@ -20,18 +23,21 @@ class EmailClient:
             self.mail.login(email_config['username'],
                           email_config['password'])
 
-            print(f"Connected to {email_config['server']}")
+            logging.info(f"Successfully connected to {email_config['server']}")
             return True
 
         except Exception as e:
-            print(f"Connection failed: {e}")
+            logging.error(f"Connection failed: {e}")
             return False
 
     def disconnect(self):
         if self.mail:
-            self.mail.close()
-            self.mail.logout()
-            print("Disconnected from email server")
+            try:
+                self.mail.close()
+                self.mail.logout()
+                logging.info("Disconnected from email server")
+            except Exception as e:
+                logging.warning(f"Error during disconnect: {e}")
 
     def get_folders(self):
         if not self.mail:

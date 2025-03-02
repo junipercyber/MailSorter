@@ -3,6 +3,7 @@ __pycache__/
 .claude
 *$py.class
 config.json
+*.log
 *.so
 CLAUDE.md
 .Python
