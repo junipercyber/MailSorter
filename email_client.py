@@ -73,3 +73,33 @@ class EmailClient:
                 emails.append((email_id, email_message))
 
         return emails
+
+    def move_email(self, email_id, target_folder):
+        if not self.mail:
+            return False
+
+        try:
+            self.mail.store(email_id, '+FLAGS', '\\Deleted')
+
+            if target_folder != 'INBOX':
+                self.mail.copy(email_id, target_folder)
+
+            self.mail.expunge()
+            logging.info(f"Moved email {email_id} to {target_folder}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to move email {email_id}: {e}")
+            return False
+
+    def create_folder(self, folder_name):
+        if not self.mail:
+            return False
+
+        try:
+            self.mail.create(folder_name)
+            logging.info(f"Created folder: {folder_name}")
+            return True
+        except Exception as e:
+            logging.warning(f"Could not create folder {folder_name}: {e}")
+            return False
