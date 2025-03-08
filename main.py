@@ -72,6 +72,14 @@ def main():
         print("Config file not found. Please create config.json based on config.json.example")
         return
 
+    config = Config()
+    validation_errors = config.validate_config()
+    if validation_errors:
+        print("Configuration errors found:")
+        for error in validation_errors:
+            print(f"  - {error}")
+        return
+
     client = EmailClient()
 
     if args.test:
