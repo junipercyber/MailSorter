@@ -33,10 +33,13 @@ def sort_emails(client, limit=10, dry_run=True):
 
     moved_count = 0
     required_folders = set()
+    stats = {}
 
     for email_id, email_message in emails:
         folder = sorter.classify_email(email_message)
         subject = email_message.get('Subject', 'No Subject')[:50]
+
+        stats[folder] = stats.get(folder, 0) + 1
 
         if folder != 'INBOX':
             required_folders.add(folder)
@@ -48,8 +51,12 @@ def sort_emails(client, limit=10, dry_run=True):
             if client.move_email(email_id, folder):
                 moved_count += 1
 
+    print("\nProcessing Summary:")
+    for folder, count in sorted(stats.items()):
+        print(f"  {folder}: {count} emails")
+
     if not dry_run:
-        print(f"Successfully moved {moved_count} emails")
+        print(f"\nSuccessfully moved {moved_count} emails")
 
         if required_folders:
             existing_folders = client.get_folders()
@@ -59,10 +66,34 @@ def sort_emails(client, limit=10, dry_run=True):
 
     client.disconnect()
 
+def show_stats(client):
+    if not client.connect():
+        print("Failed to connect to email server")
+        return
+
+    folders = client.get_folders()
+    print("Email Folder Statistics:")
+    print("=" * 25)
+
+    total_emails = 0
+    for folder in sorted(folders):
+        if client.select_folder(folder):
+            status, messages = client.mail.search(None, 'ALL')
+            if status == 'OK':
+                count = len(messages[0].split()) if messages[0] else 0
+                total_emails += count
+                print(f"{folder:20}: {count:>6} emails")
+
+    print("-" * 25)
+    print(f"{'Total':20}: {total_emails:>6} emails")
+
+    client.disconnect()
+
 def main():
     parser = argparse.ArgumentParser(description='MailSorter - Email Classification Tool')
     parser.add_argument('--test', action='store_true', help='Test connection')
     parser.add_argument('--sort', action='store_true', help='Sort emails')
+    parser.add_argument('--stats', action='store_true', help='Show folder statistics')
     parser.add_argument('--limit', type=int, default=10, help='Number of emails to process')
     parser.add_argument('--no-dry-run', action='store_true', help='Actually move emails')
 
@@ -86,6 +117,8 @@ def main():
         test_connection(client)
     elif args.sort:
         sort_emails(client, limit=args.limit, dry_run=not args.no_dry_run)
+    elif args.stats:
+        show_stats(client)
     else:
         print("MailSorter - Email Classification Tool")
         print("Use --help for available options")
